@@ -1,0 +1,5 @@
+duckdb
+rdflib
+scikit-learn
+pandas
+tabulate

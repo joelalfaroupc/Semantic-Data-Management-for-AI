@@ -1,0 +1,75 @@
+uri,label,listingCount,avgPrice,avgRating,tourismAssetScore,incomeEur,hutCount,licensedBeds,cluster
+https://example.org/bda/barcelona-tourism/neighborhood/baro-de-viver,Baró de Viver,0.0,0.0,0.0,1.0,13678.5,0.0,0.0,3
+https://example.org/bda/barcelona-tourism/neighborhood/can-baro,Can Baró,38.0,122.6053,4.6304,2.0,20985.57,25.0,109.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/can-peguera,Can Peguera,1.0,48.0,4.63,1.0,14582.0,0.0,0.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/canyelles,Canyelles,1.0,174.0,4.88,0.0,19592.6,2.0,15.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/ciutat-meridiana,Ciutat Meridiana,2.0,49.0,4.67,2.0,11796.5,0.0,0.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/diagonal-mar-i-el-front-maritim-del-poblenou,Diagonal Mar i el Front Marítim del Poblenou,128.0,261.5156,4.6958,31.0,25314.57,129.0,1039.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/horta,Horta,13.0,69.7692,4.7975,11.0,21461.24,6.0,52.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/hostafrancs,Hostafrancs,155.0,208.2903,4.6354,20.0,21022.0,176.0,902.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/montbau,Montbau,2.0,72.5,4.815,7.0,21025.0,0.0,0.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/navas,Navas,54.0,342.463,4.5955,2.0,21373.23,25.0,122.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/pedralbes,Pedralbes,25.0,174.48,4.6795,38.0,37844.71,11.0,93.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/porta,Porta,29.0,97.3103,4.7183,7.0,18258.89,12.0,39.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/provencals-del-poblenou,Provençals del Poblenou,81.0,132.0123,4.7475,10.0,20598.75,36.0,193.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sant-andreu,Sant Andreu,75.0,103.1733,4.5087,62.0,22392.77,32.0,192.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sant-antoni,Sant Antoni,821.0,219.028,4.6117,34.0,23587.5,669.0,3770.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/sant-genis-dels-agudells,Sant Genís dels Agudells,4.0,64.0,4.9275,6.0,18555.8,3.0,15.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sant-gervasi-galvany,Sant Gervasi - Galvany,489.0,154.6319,4.4413,43.0,36283.19,313.0,2348.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/sant-gervasi-la-bonanova,Sant Gervasi - la Bonanova,80.0,139.2875,4.4712,48.0,36110.22,75.0,543.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sant-marti-de-provencals,Sant Martí de Provençals,49.0,73.2449,4.6456,4.0,19695.78,14.0,82.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sant-pere-santa-caterina-i-la-ribera,"Sant Pere, Santa Caterina i la Ribera",994.0,153.831,4.6022,71.0,19655.15,237.0,1002.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/sants,Sants,286.0,172.486,4.6102,21.0,22917.45,248.0,1268.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sants-badal,Sants - Badal,156.0,328.4615,4.5634,4.0,20366.38,110.0,513.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/sarria,Sarrià,72.0,140.1806,4.6424,36.0,35446.38,33.0,176.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/torre-baro,Torre Baró,2.0,137.0,4.56,1.0,12819.0,0.0,0.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/vallbona,Vallbona,0.0,0.0,0.0,1.0,13420.0,0.0,0.0,3
+https://example.org/bda/barcelona-tourism/neighborhood/vallcarca-i-els-penitents,Vallcarca i els Penitents,73.0,143.4384,4.6496,16.0,27250.91,39.0,252.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/vallvidrera-el-tibidabo-i-les-planes,"Vallvidrera, el Tibidabo i les Planes",25.0,139.84,4.7924,22.0,29594.67,3.0,22.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/verdun,Verdun,10.0,67.0,4.705,1.0,15138.62,3.0,25.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/vilapicina-i-la-torre-llobeta,Vilapicina i la Torre Llobeta,71.0,171.4789,4.6721,2.0,20252.16,17.0,71.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-baix-guinardo,el Baix Guinardó,121.0,143.7107,4.4144,12.0,22595.21,102.0,539.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-barri-gotic,el Barri Gòtic,969.0,174.87,4.5442,156.0,18668.11,236.0,1273.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/el-besos-i-el-maresme,el Besòs i el Maresme,93.0,244.7419,4.6866,8.0,15073.38,32.0,183.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-bon-pastor,el Bon Pastor,6.0,116.0,4.762,6.0,16794.86,2.0,4.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-camp-d-en-grassot-i-gracia-nova,el Camp d'en Grassot i Gràcia Nova,237.0,144.2911,4.6616,16.0,25730.16,228.0,1301.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-camp-de-l-arpa-del-clot,el Camp de l'Arpa del Clot,256.0,248.7969,4.5328,10.0,22370.32,295.0,1516.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-carmel,el Carmel,76.0,101.7632,4.5387,5.0,16394.68,34.0,173.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-clot,el Clot,79.0,100.7089,4.6314,4.0,22035.53,52.0,267.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-coll,el Coll,35.0,403.4286,4.3236,9.0,21389.8,20.0,109.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-congres-i-els-indians,el Congrés i els Indians,38.0,93.6053,4.7308,16.0,20847.67,6.0,29.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-fort-pienc,el Fort Pienc,385.0,178.7325,4.617,27.0,24163.2,380.0,2294.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/el-guinardo,el Guinardó,103.0,265.6408,4.6582,13.0,21836.28,72.0,382.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-parc-i-la-llacuna-del-poblenou,el Parc i la Llacuna del Poblenou,164.0,181.9207,4.6457,34.0,23582.89,103.0,528.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-poble-sec,el Poble Sec,0.0,205.6944,4.5854,0.0,0.0,0.0,2762.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-poble-sec,el Poble Sec,0.0,205.6944,4.5854,0.0,0.0,0.0,2762.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-poblenou,el Poblenou,412.0,200.8495,4.6634,32.0,23771.45,458.0,2394.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/el-putxet-i-el-farro,el Putxet i el Farró,223.0,137.1435,4.538,24.0,29461.42,202.0,1198.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/el-raval,el Raval,1108.0,129.0957,4.536,138.0,14221.14,248.0,1402.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/el-turo-de-la-peira,el Turó de la Peira,23.0,38.8696,4.5833,6.0,15725.4,1.0,3.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/l-antiga-esquerra-de-l-eixample,l'Antiga Esquerra de l'Eixample,788.0,186.5876,4.6212,63.0,28278.5,725.0,4666.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/la-barceloneta,la Barceloneta,378.0,110.6085,4.679,34.0,17965.91,118.0,241.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-bordeta,la Bordeta,68.0,104.9706,4.753,3.0,21269.62,42.0,222.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-clota,la Clota,4.0,215.0,5.0,3.0,20747.0,0.0,0.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-dreta-de-l-eixample,la Dreta de l'Eixample,1942.0,252.8352,4.6482,242.0,29815.34,1802.0,12472.0,1
+https://example.org/bda/barcelona-tourism/neighborhood/la-font-d-en-fargues,la Font d'en Fargues,27.0,118.6296,4.0892,2.0,26166.0,4.0,51.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-font-de-la-guatlla,la Font de la Guatlla,88.0,236.6477,4.5619,6.0,21888.57,139.0,667.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-guineueta,la Guineueta,9.0,61.2222,4.7525,9.0,20288.73,1.0,4.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-marina-de-port,la Marina de Port,40.0,55.025,4.7797,10.0,18088.29,8.0,48.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-marina-del-prat-vermell,la Marina del Prat Vermell,8.0,125.625,4.452,5.0,0.0,3.0,10.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-maternitat-i-sant-ramon,la Maternitat i Sant Ramon,78.0,166.9103,4.6192,37.0,26100.0,47.0,313.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-nova-esquerra-de-l-eixample,la Nova Esquerra de l'Eixample,639.0,246.7981,4.5418,42.0,26255.95,510.0,3000.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/la-prosperitat,la Prosperitat,24.0,62.2083,4.6787,0.0,16938.25,3.0,15.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-sagrada-familia,la Sagrada Família,886.0,190.7562,4.6161,11.0,23512.62,824.0,4464.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/la-sagrera,la Sagrera,49.0,104.2245,4.7088,13.0,20804.5,25.0,179.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-salut,la Salut,65.0,133.0923,4.6842,18.0,25761.2,37.0,144.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-teixonera,la Teixonera,16.0,68.1875,4.4914,0.0,17841.25,5.0,28.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-trinitat-nova,la Trinitat Nova,3.0,47.6667,5.0,2.0,13792.8,0.0,0.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-trinitat-vella,la Trinitat Vella,6.0,53.5,4.0983,4.0,13545.6,5.0,17.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-vall-d-hebron,la Vall d'Hebron,6.0,86.3333,3.98,8.0,23393.0,1.0,4.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-verneda-i-la-pau,la Verneda i la Pau,42.0,85.5,4.4392,0.0,18176.62,9.0,49.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-vila-olimpica-del-poblenou,la Vila Olímpica del Poblenou,134.0,229.3284,4.6627,10.0,32087.6,106.0,724.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/la-vila-de-gracia,la Vila de Gràcia,941.0,175.2402,4.6055,96.0,24766.36,804.0,4218.0,2
+https://example.org/bda/barcelona-tourism/neighborhood/les-corts,les Corts,219.0,169.7626,4.6251,44.0,29115.23,208.0,1139.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/les-roquetes,les Roquetes,11.0,71.2727,4.6725,0.0,14022.6,2.0,6.0,0
+https://example.org/bda/barcelona-tourism/neighborhood/les-tres-torres,les Tres Torres,44.0,144.1818,4.6063,15.0,41344.18,36.0,196.0,0
