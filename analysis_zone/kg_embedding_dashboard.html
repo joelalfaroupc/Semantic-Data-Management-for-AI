@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KG Embedding Clusters Dashboard</title>
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --text: #20242a;
+      --muted: #5f6b7a;
+      --border: #d9dee7;
+      --accent: #1769aa;
+      --accent-soft: #e8f2fb;
+      --shadow: 0 1px 3px rgba(32, 36, 42, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+    header {
+      padding: 24px 32px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .subtitle {
+      max-width: 920px;
+      color: var(--muted);
+      margin: 0;
+      font-size: 15px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 20px;
+      padding: 20px 32px 32px;
+    }
+    section, aside {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .visual-panel {
+      min-width: 0;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .toolbar h2, aside h2, .table-panel h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    select {
+      min-width: 190px;
+      margin-left: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+    }
+    .chart-wrap {
+      padding: 16px;
+      overflow: hidden;
+    }
+    svg {
+      display: block;
+      width: 100%;
+      height: 520px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fbfcfe;
+    }
+    .axis {
+      stroke: #aab3bf;
+      stroke-width: 1;
+    }
+    .axis-label {
+      fill: var(--muted);
+      font-size: 12px;
+    }
+    circle {
+      stroke: #ffffff;
+      stroke-width: 2;
+      cursor: pointer;
+    }
+    circle:hover, circle.active {
+      stroke: #111827;
+      stroke-width: 3;
+    }
+    aside {
+      padding: 16px;
+      align-self: start;
+    }
+    .detail-title {
+      margin: 12px 0 4px;
+      font-size: 22px;
+    }
+    .detail-meta {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fbfcfe;
+    }
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 17px;
+    }
+    .legend, #cluster-summary {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .legend-item, .summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fbfcfe;
+      font-size: 13px;
+    }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .table-panel {
+      grid-column: 1 / -1;
+      padding: 16px;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      background: #fff;
+    }
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    th {
+      background: var(--accent-soft);
+      color: #153b59;
+      font-weight: 700;
+    }
+    tr:hover td {
+      background: #f4f8fc;
+    }
+    @media (max-width: 980px) {
+      header, main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      main {
+        grid-template-columns: 1fr;
+      }
+      svg {
+        height: 420px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>KG Embedding Clusters Dashboard</h1>
+    <p class="subtitle">Visual inspection of the graph-derived neighborhood embeddings. Each point is a Barcelona neighborhood projected with PCA; colors can switch between KMeans and Agglomerative clustering.</p>
+  </header>
+  <main>
+    <section class="visual-panel" aria-labelledby="scatter-title">
+      <div class="toolbar">
+        <h2 id="scatter-title">PCA scatter</h2>
+        <label for="cluster-method">Cluster method
+          <select id="cluster-method">
+            <option value="kmeansCluster">KMeans</option>
+            <option value="hierarchicalCluster">Agglomerative</option>
+          </select>
+        </label>
+      </div>
+      <div class="chart-wrap">
+        <svg id="scatter" role="img" aria-label="PCA scatter plot of neighborhood embeddings"></svg>
+      </div>
+    </section>
+
+    <aside>
+      <h2>Selected neighborhood</h2>
+      <div id="detail"></div>
+      <h2>Cluster summary</h2>
+      <div id="cluster-summary"></div>
+      <h2 style="margin-top: 18px;">Legend</h2>
+      <div id="legend" class="legend"></div>
+    </aside>
+
+    <section class="table-panel" aria-labelledby="table-title">
+      <h2 id="table-title">Neighborhood values</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Neighborhood</th>
+              <th>District</th>
+              <th>Pressure</th>
+              <th>KMeans</th>
+              <th>Agglomerative</th>
+              <th>Listings</th>
+              <th>HUT licenses</th>
+              <th>HUT/listing</th>
+              <th>Beds/HUT</th>
+              <th>Income</th>
+              <th>Tourism assets</th>
+            </tr>
+          </thead>
+          <tbody id="values-table"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script type="application/json" id="embedding-data">[{"label": "Montbau", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 2.0, "hutCount": 0.0, "incomeEur": 21025.0, "tourismAssetScore": 7.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.5607524517993325, "pca2": -0.9788614058909064}, {"label": "la Clota", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 4.0, "hutCount": 0.0, "incomeEur": 20747.0, "tourismAssetScore": 3.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.245269545318388, "pca2": -0.3632635953539863}, {"label": "Can Peguera", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 1.0, "hutCount": 0.0, "incomeEur": 14582.0, "tourismAssetScore": 1.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -3.021782706978524, "pca2": -1.4621440976732831}, {"label": "Ciutat Meridiana", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 2.0, "hutCount": 0.0, "incomeEur": 11796.5, "tourismAssetScore": 2.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -3.040329915937449, "pca2": -2.022736537360611}, {"label": "Torre Baró", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 2.0, "hutCount": 0.0, "incomeEur": 12819.0, "tourismAssetScore": 1.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.818981531940841, "pca2": -1.514767206952055}, {"label": "Vallbona", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 0.0, "hutCount": 0.0, "incomeEur": 13420.0, "tourismAssetScore": 1.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 3, "pca1": -3.818359543780789, "pca2": -3.26052722358103}, {"label": "el Turó de la Peira", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 23.0, "hutCount": 1.0, "incomeEur": 15725.4, "tourismAssetScore": 6.0, "hutListingRatio": 0.0434782608695652, "bedsPerHut": 3.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.0864408552868112, "pca2": -1.3775128955710123}, {"label": "la Trinitat Nova", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 3.0, "hutCount": 0.0, "incomeEur": 13792.8, "tourismAssetScore": 2.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.903636153046041, "pca2": -1.5824679917468225}, {"label": "les Roquetes", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 11.0, "hutCount": 2.0, "incomeEur": 14022.6, "tourismAssetScore": 0.0, "hutListingRatio": 0.1818181818181818, "bedsPerHut": 3.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.6090318684534544, "pca2": -0.8477827171717406}, {"label": "Baró de Viver", "district": "Sant Andreu", "pressureLevel": "low", "listingCount": 0.0, "hutCount": 0.0, "incomeEur": 13678.5, "tourismAssetScore": 1.0, "hutListingRatio": 0.0, "bedsPerHut": 0.0, "kmeansCluster": 0, "hierarchicalCluster": 3, "pca1": -3.911986369532434, "pca2": -3.366526970393896}, {"label": "el Bon Pastor", "district": "Sant Andreu", "pressureLevel": "low", "listingCount": 6.0, "hutCount": 2.0, "incomeEur": 16794.86, "tourismAssetScore": 6.0, "hutListingRatio": 0.3333333333333333, "bedsPerHut": 2.0, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.3089620190017786, "pca2": -0.5956205846069319}, {"label": "la Trinitat Vella", "district": "Sant Andreu", "pressureLevel": "low", "listingCount": 6.0, "hutCount": 5.0, "incomeEur": 13545.6, "tourismAssetScore": 4.0, "hutListingRatio": 0.8333333333333334, "bedsPerHut": 3.4, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.3554824709833557, "pca2": -0.8853870026261073}, {"label": "la Marina del Prat Vermell", "district": "Sants-Montjuïc", "pressureLevel": "low", "listingCount": 8.0, "hutCount": 3.0, "incomeEur": 0.0, "tourismAssetScore": 5.0, "hutListingRatio": 0.375, "bedsPerHut": 3.333333333333333, "kmeansCluster": 0, "hierarchicalCluster": 1, "pca1": -2.9527320764087386, "pca2": -3.0276110174538715}, {"label": "la Dreta de l'Eixample", "district": "Eixample", "pressureLevel": "high", "listingCount": 1942.0, "hutCount": 1802.0, "incomeEur": 29815.34, "tourismAssetScore": 242.0, "hutListingRatio": 0.9279093717816684, "bedsPerHut": 6.921198668146504, "kmeansCluster": 1, "hierarchicalCluster": 2, "pca1": 10.447939730880444, "pca2": -4.164980858079156}, {"label": "la Vila de Gràcia", "district": "Gràcia", "pressureLevel": "high", "listingCount": 941.0, "hutCount": 804.0, "incomeEur": 24766.36, "tourismAssetScore": 96.0, "hutListingRatio": 0.8544102019128587, "bedsPerHut": 5.246268656716418, "kmeansCluster": 1, "hierarchicalCluster": 0, "pca1": 5.392067050737825, "pca2": -1.9881679503520624}, {"label": "el Poble Sec", "district": "Sants-Montjuïc", "pressureLevel": "high", "listingCount": 697.0, "hutCount": 571.0, "incomeEur": 0.0, "tourismAssetScore": 73.0, "hutListingRatio": 0.8192252510760402, "bedsPerHut": 4.837127845884413, "kmeansCluster": 1, "hierarchicalCluster": 0, "pca1": 3.288705461340309, "pca2": -4.583347360380612}, {"label": "Vallcarca i els Penitents", "district": "Gràcia", "pressureLevel": "medium", "listingCount": 73.0, "hutCount": 39.0, "incomeEur": 27250.91, "tourismAssetScore": 16.0, "hutListingRatio": 0.5342465753424658, "bedsPerHut": 6.461538461538462, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.7508088599040881, "pca2": 1.189820003092618}, {"label": "el Coll", "district": "Gràcia", "pressureLevel": "medium", "listingCount": 35.0, "hutCount": 20.0, "incomeEur": 21389.8, "tourismAssetScore": 9.0, "hutListingRatio": 0.5714285714285714, "bedsPerHut": 5.45, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.4869497694718491, "pca2": 1.1837388512353513}, {"label": "la Salut", "district": "Gràcia", "pressureLevel": "medium", "listingCount": 65.0, "hutCount": 37.0, "incomeEur": 25761.2, "tourismAssetScore": 18.0, "hutListingRatio": 0.5692307692307692, "bedsPerHut": 3.891891891891892, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.0163925150868869, "pca2": 0.613359767392435}, {"label": "Can Baró", "district": "Horta-Guinardó", "pressureLevel": "medium", "listingCount": 38.0, "hutCount": 25.0, "incomeEur": 20985.57, "tourismAssetScore": 2.0, "hutListingRatio": 0.6578947368421053, "bedsPerHut": 4.36, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.236554742432067, "pca2": 0.520495152577567}, {"label": "Horta", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 13.0, "hutCount": 6.0, "incomeEur": 21461.24, "tourismAssetScore": 11.0, "hutListingRatio": 0.4615384615384615, "bedsPerHut": 8.666666666666666, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.4034165142905646, "pca2": 0.5208035537487716}, {"label": "Sant Genís dels Agudells", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 4.0, "hutCount": 3.0, "incomeEur": 18555.8, "tourismAssetScore": 6.0, "hutListingRatio": 0.75, "bedsPerHut": 5.0, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.871436683465262, "pca2": 0.01656440351784}, {"label": "el Carmel", "district": "Horta-Guinardó", "pressureLevel": "medium", "listingCount": 76.0, "hutCount": 34.0, "incomeEur": 16394.68, "tourismAssetScore": 5.0, "hutListingRatio": 0.4473684210526316, "bedsPerHut": 5.088235294117647, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.2151361423700355, "pca2": -0.5226232084041873}, {"label": "la Font d'en Fargues", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 27.0, "hutCount": 4.0, "incomeEur": 26166.0, "tourismAssetScore": 2.0, "hutListingRatio": 0.1481481481481481, "bedsPerHut": 12.75, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.312367248218633, "pca2": 1.824588810649613}, {"label": "la Teixonera", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 16.0, "hutCount": 5.0, "incomeEur": 17841.25, "tourismAssetScore": 0.0, "hutListingRatio": 0.3125, "bedsPerHut": 5.6, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -2.317935837231446, "pca2": -0.2541212995700215}, {"label": "la Vall d'Hebron", "district": "Horta-Guinardó", "pressureLevel": "low", "listingCount": 6.0, "hutCount": 1.0, "incomeEur": 23393.0, "tourismAssetScore": 8.0, "hutListingRatio": 0.1666666666666666, "bedsPerHut": 4.0, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -2.071302952493305, "pca2": -0.1789512585747677}, {"label": "Pedralbes", "district": "Les Corts", "pressureLevel": "medium", "listingCount": 25.0, "hutCount": 11.0, "incomeEur": 37844.71, "tourismAssetScore": 38.0, "hutListingRatio": 0.44, "bedsPerHut": 8.454545454545455, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.0754966159468331, "pca2": 2.20685731425016}, {"label": "la Maternitat i Sant Ramon", "district": "Les Corts", "pressureLevel": "medium", "listingCount": 78.0, "hutCount": 47.0, "incomeEur": 26100.0, "tourismAssetScore": 37.0, "hutListingRatio": 0.6025641025641025, "bedsPerHut": 6.659574468085107, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.1078557748090185, "pca2": 0.4316021132440554}, {"label": "Canyelles", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 1.0, "hutCount": 2.0, "incomeEur": 19592.6, "tourismAssetScore": 0.0, "hutListingRatio": 2.0, "bedsPerHut": 7.5, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.7029941723422207, "pca2": 2.604448061445056}, {"label": "Porta", "district": "Nou Barris", "pressureLevel": "medium", "listingCount": 29.0, "hutCount": 12.0, "incomeEur": 18258.89, "tourismAssetScore": 7.0, "hutListingRatio": 0.4137931034482758, "bedsPerHut": 3.25, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.9456773787594982, "pca2": -0.3387589298349496}, {"label": "Verdun", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 10.0, "hutCount": 3.0, "incomeEur": 15138.62, "tourismAssetScore": 1.0, "hutListingRatio": 0.3, "bedsPerHut": 8.333333333333334, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -2.023429918554454, "pca2": 0.1418485796803648}, {"label": "Vilapicina i la Torre Llobeta", "district": "Nou Barris", "pressureLevel": "medium", "listingCount": 71.0, "hutCount": 17.0, "incomeEur": 20252.16, "tourismAssetScore": 2.0, "hutListingRatio": 0.2394366197183098, "bedsPerHut": 4.176470588235294, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.619927619523177, "pca2": 0.4659204368810009}, {"label": "la Guineueta", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 9.0, "hutCount": 1.0, "incomeEur": 20288.73, "tourismAssetScore": 9.0, "hutListingRatio": 0.1111111111111111, "bedsPerHut": 4.0, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.576163712444984, "pca2": -0.4624803285283699}, {"label": "la Prosperitat", "district": "Nou Barris", "pressureLevel": "low", "listingCount": 24.0, "hutCount": 3.0, "incomeEur": 16938.25, "tourismAssetScore": 0.0, "hutListingRatio": 0.125, "bedsPerHut": 5.0, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -2.2474931975372274, "pca2": -0.177838800762671}, {"label": "Navas", "district": "Sant Andreu", "pressureLevel": "medium", "listingCount": 54.0, "hutCount": 25.0, "incomeEur": 21373.23, "tourismAssetScore": 2.0, "hutListingRatio": 0.4629629629629629, "bedsPerHut": 4.88, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.317799212208622, "pca2": 1.3519925412120153}, {"label": "Sant Andreu", "district": "Sant Andreu", "pressureLevel": "medium", "listingCount": 75.0, "hutCount": 32.0, "incomeEur": 22392.77, "tourismAssetScore": 62.0, "hutListingRatio": 0.4266666666666667, "bedsPerHut": 6.0, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": 0.5011751985722576, "pca2": -0.4414895213294498}, {"label": "el Congrés i els Indians", "district": "Sant Andreu", "pressureLevel": "medium", "listingCount": 38.0, "hutCount": 6.0, "incomeEur": 20847.67, "tourismAssetScore": 16.0, "hutListingRatio": 0.1578947368421052, "bedsPerHut": 4.833333333333333, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.1807946633432744, "pca2": 0.0991711091743569}, {"label": "la Sagrera", "district": "Sant Andreu", "pressureLevel": "medium", "listingCount": 49.0, "hutCount": 25.0, "incomeEur": 20804.5, "tourismAssetScore": 13.0, "hutListingRatio": 0.5102040816326531, "bedsPerHut": 7.16, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.678959364246831, "pca2": 0.7169557366099029}, {"label": "Provençals del Poblenou", "district": "Sant Martí", "pressureLevel": "medium", "listingCount": 81.0, "hutCount": 36.0, "incomeEur": 20598.75, "tourismAssetScore": 10.0, "hutListingRatio": 0.4444444444444444, "bedsPerHut": 5.361111111111111, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.135990446658042, "pca2": 0.2625071251718628}, {"label": "Sant Martí de Provençals", "district": "Sant Martí", "pressureLevel": "medium", "listingCount": 49.0, "hutCount": 14.0, "incomeEur": 19695.78, "tourismAssetScore": 4.0, "hutListingRatio": 0.2857142857142857, "bedsPerHut": 5.857142857142857, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.6765991203742556, "pca2": 0.0691480557623265}, {"label": "el Besòs i el Maresme", "district": "Sant Martí", "pressureLevel": "medium", "listingCount": 93.0, "hutCount": 32.0, "incomeEur": 15073.38, "tourismAssetScore": 8.0, "hutListingRatio": 0.3440860215053763, "bedsPerHut": 5.71875, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.0574710670354108, "pca2": -0.1711317628467708}, {"label": "el Clot", "district": "Sant Martí", "pressureLevel": "medium", "listingCount": 79.0, "hutCount": 52.0, "incomeEur": 22035.53, "tourismAssetScore": 4.0, "hutListingRatio": 0.6582278481012658, "bedsPerHut": 5.134615384615385, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.1823877156227371, "pca2": 0.5638783801921216}, {"label": "la Verneda i la Pau", "district": "Sant Martí", "pressureLevel": "medium", "listingCount": 42.0, "hutCount": 9.0, "incomeEur": 18176.62, "tourismAssetScore": 0.0, "hutListingRatio": 0.2142857142857142, "bedsPerHut": 5.444444444444445, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.9102290748401765, "pca2": -0.1863898110824615}, {"label": "la Bordeta", "district": "Sants-Montjuïc", "pressureLevel": "medium", "listingCount": 68.0, "hutCount": 42.0, "incomeEur": 21269.62, "tourismAssetScore": 3.0, "hutListingRatio": 0.6176470588235294, "bedsPerHut": 5.285714285714286, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.1405247259973526, "pca2": 1.2840814325364345}, {"label": "la Marina de Port", "district": "Sants-Montjuïc", "pressureLevel": "medium", "listingCount": 40.0, "hutCount": 8.0, "incomeEur": 18088.29, "tourismAssetScore": 10.0, "hutListingRatio": 0.2, "bedsPerHut": 6.0, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.6376576375311822, "pca2": 0.3263177305334199}, {"label": "Sarrià", "district": "Sarrià-Sant Gervasi", "pressureLevel": "medium", "listingCount": 72.0, "hutCount": 33.0, "incomeEur": 35446.38, "tourismAssetScore": 36.0, "hutListingRatio": 0.4583333333333333, "bedsPerHut": 5.333333333333333, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.420693863033887, "pca2": 1.044788662525059}, {"label": "Vallvidrera, el Tibidabo i les Planes", "district": "Sarrià-Sant Gervasi", "pressureLevel": "medium", "listingCount": 25.0, "hutCount": 3.0, "incomeEur": 29594.67, "tourismAssetScore": 22.0, "hutListingRatio": 0.12, "bedsPerHut": 7.333333333333333, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -1.0560771711561336, "pca2": 0.7803608746778471}, {"label": "les Tres Torres", "district": "Sarrià-Sant Gervasi", "pressureLevel": "medium", "listingCount": 44.0, "hutCount": 36.0, "incomeEur": 41344.18, "tourismAssetScore": 15.0, "hutListingRatio": 0.8181818181818182, "bedsPerHut": 5.444444444444445, "kmeansCluster": 2, "hierarchicalCluster": 1, "pca1": -0.3727800719187559, "pca2": 2.3061902568031347}, {"label": "Sant Pere, Santa Caterina i la Ribera", "district": "Ciutat Vella", "pressureLevel": "high", "listingCount": 994.0, "hutCount": 237.0, "incomeEur": 19655.15, "tourismAssetScore": 71.0, "hutListingRatio": 0.238430583501006, "bedsPerHut": 4.227848101265823, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 2.494347926834855, "pca2": -0.8804599150771885}, {"label": "el Barri Gòtic", "district": "Ciutat Vella", "pressureLevel": "high", "listingCount": 969.0, "hutCount": 236.0, "incomeEur": 18668.11, "tourismAssetScore": 156.0, "hutListingRatio": 0.2435500515995872, "bedsPerHut": 5.3940677966101696, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 3.474312511899607, "pca2": -1.5577730185180012}, {"label": "el Raval", "district": "Ciutat Vella", "pressureLevel": "high", "listingCount": 1108.0, "hutCount": 248.0, "incomeEur": 14221.14, "tourismAssetScore": 138.0, "hutListingRatio": 0.223826714801444, "bedsPerHut": 5.653225806451613, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 3.221675277834451, "pca2": -2.405311425781985}, {"label": "la Barceloneta", "district": "Ciutat Vella", "pressureLevel": "high", "listingCount": 378.0, "hutCount": 118.0, "incomeEur": 17965.91, "tourismAssetScore": 34.0, "hutListingRatio": 0.3121693121693121, "bedsPerHut": 2.042372881355932, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 0.5604214976306958, "pca2": -0.4308416796211411}, {"label": "Sant Antoni", "district": "Eixample", "pressureLevel": "high", "listingCount": 821.0, "hutCount": 669.0, "incomeEur": 23587.5, "tourismAssetScore": 34.0, "hutListingRatio": 0.8148599269183922, "bedsPerHut": 5.635276532137519, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 3.084780245917575, "pca2": -0.4367070854725489}, {"label": "el Fort Pienc", "district": "Eixample", "pressureLevel": "high", "listingCount": 385.0, "hutCount": 380.0, "incomeEur": 24163.2, "tourismAssetScore": 27.0, "hutListingRatio": 0.987012987012987, "bedsPerHut": 6.036842105263158, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.80653704697849, "pca2": 0.565461741397876}, {"label": "l'Antiga Esquerra de l'Eixample", "district": "Eixample", "pressureLevel": "high", "listingCount": 788.0, "hutCount": 725.0, "incomeEur": 28278.5, "tourismAssetScore": 63.0, "hutListingRatio": 0.9200507614213198, "bedsPerHut": 6.435862068965517, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 3.790343846061242, "pca2": -0.1302399612623906}, {"label": "la Nova Esquerra de l'Eixample", "district": "Eixample", "pressureLevel": "high", "listingCount": 639.0, "hutCount": 510.0, "incomeEur": 26255.95, "tourismAssetScore": 42.0, "hutListingRatio": 0.7981220657276995, "bedsPerHut": 5.882352941176471, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 2.764271061669835, "pca2": 0.3017470206601437}, {"label": "la Sagrada Família", "district": "Eixample", "pressureLevel": "high", "listingCount": 886.0, "hutCount": 824.0, "incomeEur": 23512.62, "tourismAssetScore": 11.0, "hutListingRatio": 0.9300225733634312, "bedsPerHut": 5.41747572815534, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 3.2088886332308784, "pca2": -0.5238973876949956}, {"label": "el Camp d'en Grassot i Gràcia Nova", "district": "Gràcia", "pressureLevel": "high", "listingCount": 237.0, "hutCount": 228.0, "incomeEur": 25730.16, "tourismAssetScore": 16.0, "hutListingRatio": 0.9620253164556962, "bedsPerHut": 5.706140350877193, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.3345253885514592, "pca2": 0.9930589211295788}, {"label": "el Baix Guinardó", "district": "Horta-Guinardó", "pressureLevel": "high", "listingCount": 121.0, "hutCount": 102.0, "incomeEur": 22595.21, "tourismAssetScore": 12.0, "hutListingRatio": 0.8429752066115702, "bedsPerHut": 5.284313725490196, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.1774255855091498, "pca2": 0.5910765823980538}, {"label": "el Guinardó", "district": "Horta-Guinardó", "pressureLevel": "high", "listingCount": 103.0, "hutCount": 72.0, "incomeEur": 21836.28, "tourismAssetScore": 13.0, "hutListingRatio": 0.6990291262135923, "bedsPerHut": 5.305555555555555, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.7253456583397595, "pca2": 1.0050790491547978}, {"label": "les Corts", "district": "Les Corts", "pressureLevel": "high", "listingCount": 219.0, "hutCount": 208.0, "incomeEur": 29115.23, "tourismAssetScore": 44.0, "hutListingRatio": 0.9497716894977168, "bedsPerHut": 5.475961538461538, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 2.639038636160648, "pca2": 0.4143751584996194}, {"label": "Diagonal Mar i el Front Marítim del Poblenou", "district": "Sant Martí", "pressureLevel": "high", "listingCount": 128.0, "hutCount": 129.0, "incomeEur": 25314.57, "tourismAssetScore": 31.0, "hutListingRatio": 1.0078125, "bedsPerHut": 8.054263565891473, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.9271162092751883, "pca2": 1.749904706726738}, {"label": "el Camp de l'Arpa del Clot", "district": "Sant Martí", "pressureLevel": "high", "listingCount": 256.0, "hutCount": 295.0, "incomeEur": 22370.32, "tourismAssetScore": 10.0, "hutListingRatio": 1.15234375, "bedsPerHut": 5.138983050847457, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.765255891078021, "pca2": 1.0035552164110075}, {"label": "el Parc i la Llacuna del Poblenou", "district": "Sant Martí", "pressureLevel": "high", "listingCount": 164.0, "hutCount": 103.0, "incomeEur": 23582.89, "tourismAssetScore": 34.0, "hutListingRatio": 0.6280487804878049, "bedsPerHut": 5.12621359223301, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.1783500243766367, "pca2": 0.4888868755449941}, {"label": "el Poblenou", "district": "Sant Martí", "pressureLevel": "high", "listingCount": 412.0, "hutCount": 458.0, "incomeEur": 23771.45, "tourismAssetScore": 32.0, "hutListingRatio": 1.1116504854368932, "bedsPerHut": 5.22707423580786, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 2.870565334343548, "pca2": 0.1815686262589673}, {"label": "la Vila Olímpica del Poblenou", "district": "Sant Martí", "pressureLevel": "high", "listingCount": 134.0, "hutCount": 106.0, "incomeEur": 32087.6, "tourismAssetScore": 10.0, "hutListingRatio": 0.7910447761194029, "bedsPerHut": 6.830188679245283, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.333112681049654, "pca2": 2.7279121106757134}, {"label": "Hostafrancs", "district": "Sants-Montjuïc", "pressureLevel": "high", "listingCount": 155.0, "hutCount": 176.0, "incomeEur": 21022.0, "tourismAssetScore": 20.0, "hutListingRatio": 1.135483870967742, "bedsPerHut": 5.125, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.7575380976174797, "pca2": 1.6906717095350563}, {"label": "Sants", "district": "Sants-Montjuïc", "pressureLevel": "high", "listingCount": 286.0, "hutCount": 248.0, "incomeEur": 22917.45, "tourismAssetScore": 21.0, "hutListingRatio": 0.8671328671328671, "bedsPerHut": 5.112903225806452, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.6599688940573298, "pca2": 1.2914094862280248}, {"label": "Sants - Badal", "district": "Sants-Montjuïc", "pressureLevel": "high", "listingCount": 156.0, "hutCount": 110.0, "incomeEur": 20366.38, "tourismAssetScore": 4.0, "hutListingRatio": 0.7051282051282052, "bedsPerHut": 4.663636363636364, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.346375452349724, "pca2": 1.9217820115749296}, {"label": "la Font de la Guatlla", "district": "Sants-Montjuïc", "pressureLevel": "high", "listingCount": 88.0, "hutCount": 139.0, "incomeEur": 21888.57, "tourismAssetScore": 6.0, "hutListingRatio": 1.5795454545454546, "bedsPerHut": 4.798561151079137, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.6100896858328853, "pca2": 2.5907520512873465}, {"label": "Sant Gervasi - Galvany", "district": "Sarrià-Sant Gervasi", "pressureLevel": "high", "listingCount": 489.0, "hutCount": 313.0, "incomeEur": 36283.19, "tourismAssetScore": 43.0, "hutListingRatio": 0.6400817995910021, "bedsPerHut": 7.501597444089457, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 3.120359792517915, "pca2": 0.6320219474833207}, {"label": "Sant Gervasi - la Bonanova", "district": "Sarrià-Sant Gervasi", "pressureLevel": "high", "listingCount": 80.0, "hutCount": 75.0, "incomeEur": 36110.22, "tourismAssetScore": 48.0, "hutListingRatio": 0.9375, "bedsPerHut": 7.24, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.4326452632200064, "pca2": 1.7401129496032175}, {"label": "el Putxet i el Farró", "district": "Sarrià-Sant Gervasi", "pressureLevel": "high", "listingCount": 223.0, "hutCount": 202.0, "incomeEur": 29461.42, "tourismAssetScore": 24.0, "hutListingRatio": 0.905829596412556, "bedsPerHut": 5.930693069306931, "kmeansCluster": 3, "hierarchicalCluster": 0, "pca1": 1.4698732134482648, "pca2": 0.7059056920732817}]</script>
+  <script>
+    const data = JSON.parse(document.getElementById("embedding-data").textContent);
+    const colors = ["#1769aa", "#c43e1c", "#2f855a", "#805ad5", "#b7791f", "#2c7a7b", "#b83280", "#4a5568"];
+    const svg = document.getElementById("scatter");
+    const methodSelect = document.getElementById("cluster-method");
+    const detail = document.getElementById("detail");
+    const summary = document.getElementById("cluster-summary");
+    const legend = document.getElementById("legend");
+    const valuesTable = document.getElementById("values-table");
+    let selectedIndex = 0;
+
+    function fmt(value, digits = 0) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return "-";
+      return number.toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+    }
+
+    function clusterColor(cluster) {
+      const index = Math.abs(Number(cluster) || 0) % colors.length;
+      return colors[index];
+    }
+
+    function extent(values) {
+      const nums = values.map(Number).filter(Number.isFinite);
+      let min = Math.min(...nums);
+      let max = Math.max(...nums);
+      if (min === max) {
+        min -= 1;
+        max += 1;
+      }
+      return [min, max];
+    }
+
+    function scale(value, sourceMin, sourceMax, targetMin, targetMax) {
+      return targetMin + ((Number(value) - sourceMin) / (sourceMax - sourceMin)) * (targetMax - targetMin);
+    }
+
+    function renderScatter() {
+      const method = methodSelect.value;
+      const width = svg.clientWidth || 900;
+      const height = svg.clientHeight || 520;
+      const pad = 54;
+      const [xMin, xMax] = extent(data.map((d) => d.pca1));
+      const [yMin, yMax] = extent(data.map((d) => d.pca2));
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.innerHTML = "";
+
+      const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      xAxis.setAttribute("x1", pad);
+      xAxis.setAttribute("x2", width - pad);
+      xAxis.setAttribute("y1", height - pad);
+      xAxis.setAttribute("y2", height - pad);
+      xAxis.setAttribute("class", "axis");
+      svg.appendChild(xAxis);
+
+      const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      yAxis.setAttribute("x1", pad);
+      yAxis.setAttribute("x2", pad);
+      yAxis.setAttribute("y1", pad);
+      yAxis.setAttribute("y2", height - pad);
+      yAxis.setAttribute("class", "axis");
+      svg.appendChild(yAxis);
+
+      const xLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      xLabel.setAttribute("x", width / 2);
+      xLabel.setAttribute("y", height - 16);
+      xLabel.setAttribute("text-anchor", "middle");
+      xLabel.setAttribute("class", "axis-label");
+      xLabel.textContent = "PCA 1";
+      svg.appendChild(xLabel);
+
+      const yLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      yLabel.setAttribute("x", 18);
+      yLabel.setAttribute("y", height / 2);
+      yLabel.setAttribute("transform", `rotate(-90 18 ${height / 2})`);
+      yLabel.setAttribute("text-anchor", "middle");
+      yLabel.setAttribute("class", "axis-label");
+      yLabel.textContent = "PCA 2";
+      svg.appendChild(yLabel);
+
+      data.forEach((d, index) => {
+        const x = scale(d.pca1, xMin, xMax, pad, width - pad);
+        const y = scale(d.pca2, yMin, yMax, height - pad, pad);
+        const r = Math.max(5, Math.min(15, 5 + Math.sqrt(Number(d.listingCount) || 0) / 4));
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", x);
+        circle.setAttribute("cy", y);
+        circle.setAttribute("r", r);
+        circle.setAttribute("fill", clusterColor(d[method]));
+        circle.setAttribute("data-index", index);
+        circle.classList.toggle("active", index === selectedIndex);
+        circle.addEventListener("click", () => {
+          selectedIndex = index;
+          renderAll();
+        });
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = `${d.label} | cluster ${d[method]} | listings ${fmt(d.listingCount)}`;
+        circle.appendChild(title);
+        svg.appendChild(circle);
+      });
+    }
+
+    function renderDetail() {
+      const d = data[selectedIndex] || data[0];
+      if (!d) {
+        detail.innerHTML = "<p>No data available.</p>";
+        return;
+      }
+      detail.innerHTML = `
+        <h3 class="detail-title">${d.label}</h3>
+        <p class="detail-meta">${d.district} | pressure: ${d.pressureLevel || "-"}</p>
+        <div class="metric-grid">
+          <div class="metric"><span>Listings</span><strong>${fmt(d.listingCount)}</strong></div>
+          <div class="metric"><span>HUT licenses</span><strong>${fmt(d.hutCount)}</strong></div>
+          <div class="metric"><span>HUT/listing</span><strong>${fmt(d.hutListingRatio, 2)}</strong></div>
+          <div class="metric"><span>Beds/HUT</span><strong>${fmt(d.bedsPerHut, 2)}</strong></div>
+          <div class="metric"><span>Income</span><strong>${fmt(d.incomeEur)} EUR</strong></div>
+          <div class="metric"><span>Tourism assets</span><strong>${fmt(d.tourismAssetScore, 1)}</strong></div>
+        </div>`;
+    }
+
+    function renderSummary() {
+      const method = methodSelect.value;
+      const groups = new Map();
+      data.forEach((d) => {
+        const key = String(d[method]);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(d);
+      });
+      summary.innerHTML = Array.from(groups.entries())
+        .sort((a, b) => Number(a[0]) - Number(b[0]))
+        .map(([cluster, rows]) => {
+          const listings = rows.reduce((sum, d) => sum + Number(d.listingCount || 0), 0);
+          const huts = rows.reduce((sum, d) => sum + Number(d.hutCount || 0), 0);
+          return `<div class="summary-row"><span><span class="swatch" style="background:${clusterColor(cluster)}"></span>Cluster ${cluster}</span><strong>${rows.length} neighborhoods | ${fmt(listings)} listings | ${fmt(huts)} HUTs</strong></div>`;
+        })
+        .join("");
+    }
+
+    function renderLegend() {
+      const method = methodSelect.value;
+      const clusters = Array.from(new Set(data.map((d) => String(d[method])))).sort((a, b) => Number(a) - Number(b));
+      legend.innerHTML = clusters
+        .map((cluster) => `<div class="legend-item"><span><span class="swatch" style="background:${clusterColor(cluster)}"></span>Cluster ${cluster}</span></div>`)
+        .join("");
+    }
+
+    function renderTable() {
+      valuesTable.innerHTML = data
+        .map((d, index) => `
+          <tr data-index="${index}">
+            <td>${d.label}</td>
+            <td>${d.district}</td>
+            <td>${d.pressureLevel || "-"}</td>
+            <td>${d.kmeansCluster}</td>
+            <td>${d.hierarchicalCluster}</td>
+            <td>${fmt(d.listingCount)}</td>
+            <td>${fmt(d.hutCount)}</td>
+            <td>${fmt(d.hutListingRatio, 2)}</td>
+            <td>${fmt(d.bedsPerHut, 2)}</td>
+            <td>${fmt(d.incomeEur)}</td>
+            <td>${fmt(d.tourismAssetScore, 1)}</td>
+          </tr>`)
+        .join("");
+      valuesTable.querySelectorAll("tr").forEach((row) => {
+        row.addEventListener("click", () => {
+          selectedIndex = Number(row.getAttribute("data-index"));
+          renderAll();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    }
+
+    function renderAll() {
+      renderScatter();
+      renderDetail();
+      renderSummary();
+      renderLegend();
+      renderTable();
+    }
+
+    methodSelect.addEventListener("change", renderAll);
+    window.addEventListener("resize", renderScatter);
+    renderAll();
+  </script>
+</body>
+</html>

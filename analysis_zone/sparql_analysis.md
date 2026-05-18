@@ -12,13 +12,13 @@
 | la Sagrada Família | Eixample | 886.0 | 824.0 | 11.0 |
 | Sant Antoni | Eixample | 821.0 | 669.0 | 34.0 |
 | l'Antiga Esquerra de l'Eixample | Eixample | 788.0 | 725.0 | 63.0 |
-| el Poble Sec | Sants-Montjuïc | 697.0 | 0.0 | 0.0 |
-| el Poble Sec | Sants-Montjuïc | 697.0 | 0.0 | 73.0 |
-| el Poble Sec | Sants-Montjuïc | 697.0 | 571.0 | 0.0 |
 | el Poble Sec | Sants-Montjuïc | 697.0 | 571.0 | 73.0 |
-| el Poble-sec | Sants-Montjuïc | 697.0 | 0.0 | 0.0 |
-| el Poble-sec | Sants-Montjuïc | 697.0 | 0.0 | 73.0 |
-| el Poble-sec | Sants-Montjuïc | 697.0 | 571.0 | 0.0 |
+| la Nova Esquerra de l'Eixample | Eixample | 639.0 | 510.0 | 42.0 |
+| Sant Gervasi - Galvany | Sarrià-Sant Gervasi | 489.0 | 313.0 | 43.0 |
+| el Poblenou | Sant Martí | 412.0 | 458.0 | 32.0 |
+| el Fort Pienc | Eixample | 385.0 | 380.0 | 27.0 |
+| la Barceloneta | Ciutat Vella | 378.0 | 118.0 | 34.0 |
+| Sants | Sants-Montjuïc | 286.0 | 248.0 | 21.0 |
 
 ## many_hut_low_income_neighborhoods
 
@@ -49,9 +49,6 @@
 | el Raval | Ciutat Vella | 138.0 | 1108.0 | 129.0957 |
 | la Vila de Gràcia | Gràcia | 96.0 | 941.0 | 175.2402 |
 | el Poble Sec | Sants-Montjuïc | 73.0 | 697.0 | 205.6944 |
-| el Poble-sec | Sants-Montjuïc | 73.0 | 697.0 | 205.6944 |
-| el Poble Sec | Sants-Montjuïc | 73.0 | 0.0 | 205.6944 |
-| el Poble-sec | Sants-Montjuïc | 73.0 | 0.0 | 205.6944 |
 | Sant Pere, Santa Caterina i la Ribera | Ciutat Vella | 71.0 | 994.0 | 153.831 |
 | l'Antiga Esquerra de l'Eixample | Eixample | 63.0 | 788.0 | 186.5876 |
 | Sant Andreu | Sant Andreu | 62.0 | 75.0 | 103.1733 |
@@ -59,3 +56,6 @@
 | les Corts | Les Corts | 44.0 | 219.0 | 169.7626 |
 | Sant Gervasi - Galvany | Sarrià-Sant Gervasi | 43.0 | 489.0 | 154.6319 |
 | la Nova Esquerra de l'Eixample | Eixample | 42.0 | 639.0 | 246.7981 |
+| Pedralbes | Les Corts | 38.0 | 25.0 | 174.48 |
+| la Maternitat i Sant Ramon | Les Corts | 37.0 | 78.0 | 166.9103 |
+| Sarrià | Sarrià-Sant Gervasi | 36.0 | 72.0 | 140.1806 |

@@ -1,6 +1,7 @@
 import unittest
 
 from src.semantic_ai.semantic_utils import (
+    canonical_neighborhood_name,
     classify_tourism_pressure,
     normalize_literal,
     uri_safe,
@@ -14,6 +15,10 @@ class SemanticUtilsTest(unittest.TestCase):
 
     def test_normalize_literal_strips_bom_and_collapses_spaces(self):
         self.assertEqual(normalize_literal("\ufeff  Sant   Martí  "), "Sant Martí")
+
+    def test_canonical_neighborhood_name_merges_poble_sec_variants(self):
+        self.assertEqual(canonical_neighborhood_name("el Poble Sec"), "el Poble Sec")
+        self.assertEqual(canonical_neighborhood_name("el Poble-sec"), "el Poble Sec")
 
     def test_tourism_pressure_uses_listing_hut_and_asset_density(self):
         high = classify_tourism_pressure(

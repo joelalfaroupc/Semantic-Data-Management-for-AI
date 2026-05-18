@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .semantic_utils import classify_tourism_pressure, normalize_literal, uri_safe
+from .semantic_utils import canonical_neighborhood_name, classify_tourism_pressure, normalize_literal, uri_safe
 
 
 BASE_IRI = "https://example.org/bda/barcelona-tourism/"
@@ -35,6 +35,30 @@ def add_literal(graph, subject, predicate, value, datatype=None):
     graph.add((subject, predicate, Literal(value, datatype=datatype)))
 
 
+def numeric_or_zero(value: object) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def merge_numeric_max(existing: dict[str, object], incoming: dict[str, object], columns: list[str]) -> None:
+    for column in columns:
+        if column in incoming:
+            existing[column] = max(numeric_or_zero(existing.get(column)), numeric_or_zero(incoming.get(column)))
+
+
+def index_rows_by_neighborhood(rows: list[dict[str, object]], numeric_columns: list[str]) -> dict[str, dict[str, object]]:
+    indexed: dict[str, dict[str, object]] = {}
+    for row in rows:
+        name = canonical_neighborhood_name(row["neighborhood_name"])
+        if name not in indexed:
+            indexed[name] = {**row, "neighborhood_name": name}
+            continue
+        merge_numeric_max(indexed[name], row, numeric_columns)
+    return indexed
+
+
 def create_graph(db_path: Path):
     _, Graph, Literal, Namespace, RDF, RDFS, XSD = require_dependencies()
 
@@ -66,9 +90,10 @@ def create_graph(db_path: Path):
     hut_rows = read_table(db_path, "neighborhood_hut_profile")
     zone_rows = read_table(db_path, "airbnb_zone_features")
 
-    income_by_neighborhood = {normalize_literal(row["neighborhood_name"]): row for row in income_rows}
-    hut_by_neighborhood = {normalize_literal(row["neighborhood_name"]): row for row in hut_rows}
-    zone_by_neighborhood = {normalize_literal(row["neighborhood_name"]): row for row in zone_rows}
+    neighborhood_by_name = index_rows_by_neighborhood(neighborhood_rows, ["tourism_asset_score"])
+    income_by_neighborhood = index_rows_by_neighborhood(income_rows, ["avg_income_eur"])
+    hut_by_neighborhood = index_rows_by_neighborhood(hut_rows, ["hut_license_count", "total_hut_beds"])
+    zone_by_neighborhood = index_rows_by_neighborhood(zone_rows, ["listing_count", "avg_price", "avg_rating"])
 
     for row in district_rows:
         district_name = normalize_literal(row["district_name"])
@@ -77,8 +102,7 @@ def create_graph(db_path: Path):
         graph.add((district, RDFS.label, Literal(district_name)))
         add_literal(graph, district, BDA.tourismAssetScore, row.get("tourism_asset_score"), XSD.double)
 
-    for row in neighborhood_rows:
-        neighborhood_name = normalize_literal(row["neighborhood_name"])
+    for neighborhood_name, row in sorted(neighborhood_by_name.items()):
         district_name = normalize_literal(row["district_name"])
         neighborhood = BDA[f"neighborhood/{uri_safe(neighborhood_name)}"]
         district = BDA[f"district/{uri_safe(district_name)}"]

@@ -1,0 +1,23 @@
+@prefix bda: <https://example.org/bda/barcelona-tourism/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://example.org/bda/barcelona-tourism/district/sants-montjuic> rdfs:label "Sants-Montjuic" .
+
+<https://example.org/bda/barcelona-tourism/neighborhood/el-poble-sec> a bda:Neighborhood ;
+    rdfs:label "el Poble Sec" ;
+    bda:inDistrict <https://example.org/bda/barcelona-tourism/district/sants-montjuic> ;
+    bda:hasTourismPressure <https://example.org/bda/barcelona-tourism/pressure/high> ;
+    bda:incomeEur 18000 ;
+    bda:listingCount 100 ;
+    bda:hutCount 25 ;
+    bda:licensedBeds 125 .
+
+<https://example.org/bda/barcelona-tourism/neighborhood/hostafrancs> a bda:Neighborhood ;
+    rdfs:label "Hostafrancs" ;
+    bda:inDistrict <https://example.org/bda/barcelona-tourism/district/sants-montjuic> ;
+    bda:hasTourismPressure <https://example.org/bda/barcelona-tourism/pressure/medium> ;
+    bda:incomeEur 22000 ;
+    bda:listingCount 20 ;
+    bda:hutCount 5 ;
+    bda:licensedBeds 15 .

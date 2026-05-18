@@ -16,6 +16,15 @@ def uri_safe(value: object) -> str:
     return text.strip("-") or "unknown"
 
 
+def canonical_neighborhood_name(value: object) -> str:
+    text = normalize_literal(value)
+    canonical_key = uri_safe(text)
+    aliases = {
+        "el-poble-sec": "el Poble Sec",
+    }
+    return aliases.get(canonical_key, text)
+
+
 def classify_tourism_pressure(
     listing_count: float,
     hut_count: float,
