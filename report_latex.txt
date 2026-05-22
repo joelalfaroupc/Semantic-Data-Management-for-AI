@@ -1,0 +1,104 @@
+\section{Project Scope and Objectives}
+
+This project extends the previous Barcelona tourism data pipeline with a Knowledge Graph (KG) exploitation zone and two KG-based analytical pipelines. The goal is to move from integrated relational data to a semantic representation that can be queried and analysed through graph concepts, as required in Project 2.
+
+The starting point is the cleaned and integrated DuckDB database generated in Project 1, located by default at \texttt{../BDA\_DataPipeline/exploitation\_zone/exploitation\_zone.duckdb}. This repository does not modify the Project 1 pipeline. Instead, it consumes the trusted and exploitation-ready tables from that project and builds a new semantic layer in \texttt{exploitation\_zone/barcelona\_tourism\_kg.ttl}. The final deliverables are Python scripts, reusable source modules, generated analytical reports, an embedding CSV file, and a dependency-free HTML dashboard.
+
+The implemented workflow covers the main requirements of the assignment:
+\begin{itemize}
+    \item creation of a KG-based exploitation zone using RDF/RDFS;
+    \item a SPARQL pattern-matching analysis pipeline;
+    \item an ML pipeline over graph-derived KG embeddings;
+    \item documentation of the design decisions and non-obvious implementation choices.
+\end{itemize}
+
+\section{Data Engineering Pipeline}
+
+The Landing, Formatted and Trusted zones are inherited from Project 1. In Project 2, the focus is the semantic exploitation zone. The input data comes from five integrated DuckDB tables: district profiles, neighborhood profiles, neighborhood income profiles, HUT license profiles, and Airbnb zone features. These tables provide the information needed to model Barcelona tourism pressure at neighborhood level.
+
+The KG construction process is implemented in \texttt{src/semantic\_ai/kg\_builder.py} and executed through \texttt{scripts/build\_kg.py}. The script reads the Project 1 DuckDB database, extracts the relevant integrated tables, normalizes entity labels, creates RDF resources and serializes the final graph in Turtle format. The generated graph currently contains 838 triples, 10 districts, 73 neighborhoods and 3 tourism pressure levels.
+
+The main RDF/RDFS classes are \texttt{District}, \texttt{Neighborhood}, \texttt{AirbnbZone} and \texttt{TourismPressureLevel}. The most important properties are \texttt{inDistrict}, \texttt{hasTourismPressure}, \texttt{listingCount}, \texttt{avgPrice}, \texttt{avgRating}, \texttt{tourismAssetScore}, \texttt{incomeEur}, \texttt{hutCount} and \texttt{licensedBeds}. This schema keeps the model simple enough to be explainable, but expressive enough to connect administrative areas, tourism activity, licensed tourist accommodation, income and tourism assets.
+
+The generated KG acts as the new exploitation zone. This is an important design decision: downstream analysis does not query the original relational tables directly, but consumes the RDF graph. Therefore, joins between districts, neighborhoods, income indicators, HUT licenses and Airbnb features are materialized as semantic relationships and literals. This makes the analysis layer less dependent on the physical schema of the DuckDB database and closer to the conceptual domain model.
+
+\section{Knowledge Graph Design Decisions}
+
+The KG is built at neighborhood granularity because the previous pipeline already produced reliable integrated data at this level. Modeling individual Airbnb listings, hotels or tourism assets as separate nodes would increase graph size, but it would also add complexity that is not necessary for the current analytical goal. The chosen design prioritizes a clear semantic view of tourism pressure across Barcelona neighborhoods.
+
+RDF/RDFS was selected instead of a heavier ontology stack. RDFS classes and properties are sufficient to define the common vocabulary required by the exploitation zone, while keeping the graph easy to inspect, query and extend. The graph is serialized as Turtle because it is human-readable and directly supported by RDFLib and SPARQL tooling.
+
+Neighborhood labels are canonicalized before creating URIs. This avoids duplicate identities when different sources use small spelling variants. For example, \texttt{el Poble Sec} and \texttt{el Poble-sec} are merged into the same resource, \texttt{bda:neighborhood/el-poble-sec}. URI creation also removes accents, lowercases text and replaces non-alphanumeric characters with hyphens. This makes identifiers stable and safe for RDF usage.
+
+When several rows map to the same canonical neighborhood, numeric metrics are merged by taking the maximum non-null value. This conservative rule was chosen because some source rows may contain missing or zero values while another source row contains the populated metric. Taking the maximum preserves the available tourism signal and avoids underestimating activity due to sparse data.
+
+Tourism pressure is represented as a semantic graph concept rather than only as raw numeric columns. The pressure score combines Airbnb listings, HUT licenses and tourism asset score:
+\[
+score = listings + 1.5 \cdot HUTs + 0.5 \cdot tourismAssets
+\]
+Neighborhoods are classified as \texttt{high} when the score is at least 200, \texttt{medium} when it is at least 40, and \texttt{low} otherwise. This rule is intentionally transparent, so it can be explained and adjusted if the organization wants different policy thresholds.
+
+The weights give more importance to HUT licenses than to Airbnb listing counts because HUTs represent formally licensed tourist accommodation capacity. Tourism assets are also included, but with a lower weight, because they represent attractiveness or concentration of points of interest rather than accommodation pressure itself. The rule is not intended to be a definitive urban policy metric; it is a reproducible semantic feature that allows the graph to expose a meaningful concept for both SPARQL queries and ML embeddings.
+
+\section{SPARQL Analysis Pipeline}
+
+The first data analysis pipeline uses SPARQL pattern matching over the RDF graph. It is implemented in \texttt{src/semantic\_ai/sparql\_analysis.py} and executed with \texttt{scripts/run\_sparql\_analysis.py}. The pipeline loads the Turtle graph with RDFLib, runs predefined SPARQL queries and exports a Markdown report to \texttt{analysis\_zone/sparql\_analysis.md}.
+
+Three analytical questions were implemented. First, the pipeline identifies high tourism pressure neighborhoods by matching \texttt{Neighborhood} resources linked to the \texttt{high} pressure level. The top results include la Dreta de l'Eixample, el Raval, Sant Pere, Santa Caterina i la Ribera, el Barri Gotic, la Vila de Gracia and la Sagrada Familia. These areas combine high Airbnb supply, many HUT licenses or high tourism asset concentration.
+
+Second, the pipeline detects neighborhoods with many HUT licenses and low income by filtering neighborhoods with at least 10 HUT licenses and average income below 22,000 EUR. This query is useful because it combines tourism accommodation pressure with a socioeconomic indicator. Examples returned by the query include el Raval, Sant Pere, Santa Caterina i la Ribera, el Barri Gotic, Hostafrancs, la Font de la Guatlla and la Barceloneta.
+
+Third, the pipeline ranks neighborhoods by tourism asset score and Airbnb supply. This helps identify areas where physical tourism attractiveness and short-term rental activity overlap. la Dreta de l'Eixample is the strongest case, with 1,942 listings, 1,802 HUT licenses and the highest tourism asset score in the graph.
+
+The value of using SPARQL is that these questions are expressed in terms of graph concepts instead of table-specific joins. For instance, the first query follows the relation from a neighborhood to its district and to its tourism pressure level, while the second query combines socioeconomic literals with accommodation indicators. If more data sources were added later, such as hotels or points of interest, the same query style could be extended by adding new graph properties without changing the analytical interface completely.
+
+\section{KG Embedding and Machine Learning Pipeline}
+
+The second analysis pipeline builds graph-derived embeddings for each neighborhood and applies clustering. It is implemented in \texttt{src/semantic\_ai/embedding\_ml.py} and executed with \texttt{scripts/run\_embedding\_ml.py}. The output is saved as \texttt{analysis\_zone/kg\_embedding\_clusters.md} and \texttt{analysis\_zone/kg\_embedding\_clusters.csv}.
+
+Instead of using a black-box random-walk method such as Node2Vec, the project uses interpretable semantic embeddings. Each neighborhood vector is extracted from RDF triples and graph relations. The features include direct literals such as listing count, average price, rating, tourism asset score, income, HUT licenses and licensed beds. They also include semantic and relational features: ordinal tourism pressure, a high-pressure flag, HUT-to-listing ratio, beds per HUT license, listing share inside the district, income relative to the district average, tourism assets relative to the district average, and a combined low-income high-tourism flag.
+
+This design was chosen because the graph contains 73 neighborhood nodes, which is relatively small for random-walk embeddings. A transparent feature representation is easier to validate, explain and connect to public-policy questions. The embeddings still exploit the KG structure because they use the semantic pressure concept and district-relative graph relationships, not only raw table columns.
+
+The standardized embedding matrix is clustered with two methods. KMeans is used as a centroid-based baseline, while Agglomerative Clustering with Ward linkage is used as a hierarchical alternative suited to a small neighborhood dataset. Both methods use four clusters. The KMeans silhouette score is 0.222, while the agglomerative method obtains 0.329, suggesting that the hierarchical grouping separates this dataset more clearly.
+
+The pipeline also computes a two-dimensional PCA projection for visual inspection. PCA is not used as the clustering model; it is only used to inspect whether the generated groups are separated in a low-dimensional view. The CSV includes 73 neighborhoods: 28 high-pressure, 23 medium-pressure and 22 low-pressure neighborhoods. Eight neighborhoods are marked by the combined low-income and high-tourism-pressure signal.
+
+The clustering results are interpretable because the exported reports include cluster centroids. KMeans separates a small group of extremely high-tourism neighborhoods, including cases with very high listing counts and HUT license counts, from larger groups with medium or low tourism activity. The agglomerative model isolates la Dreta de l'Eixample as a single-neighborhood cluster, which is coherent with the data because this neighborhood is an outlier in listings, HUT licenses and tourism asset score. This behaviour explains why the agglomerative silhouette score is higher: the hierarchical method handles strong local outliers better than a purely centroid-based partition in this small dataset.
+
+The low-income high-tourism feature is especially relevant from an analytical perspective. It does not only describe tourism intensity, but also identifies neighborhoods where tourism pressure overlaps with lower income levels. This kind of feature illustrates why the KG representation is useful for AI tasks: semantic concepts can be transformed into numerical features while preserving their domain meaning.
+
+\section{Visualization and Outputs}
+
+To make the embedding results easier to inspect, the project generates a static HTML dashboard with \texttt{scripts/build\_embedding\_dashboard.py}. The dashboard reads the embedding CSV and produces \texttt{analysis\_zone/kg\_embedding\_dashboard.html}. It can be opened directly in a browser and does not require a backend server.
+
+The dashboard shows a PCA scatter plot where each point is a neighborhood. The user can switch the color encoding between KMeans and Agglomerative clusters, select individual neighborhoods, inspect their metrics and compare cluster summaries. The table below the chart exposes the same values used by the model, which keeps the visualization consistent with the analytical pipeline.
+
+The repository is organized so that the project can be deployed and reproduced through scripts:
+\begin{itemize}
+    \item \texttt{scripts/build\_kg.py}: builds the RDF/Turtle KG from the Project 1 DuckDB database;
+    \item \texttt{scripts/run\_sparql\_analysis.py}: runs SPARQL queries and exports the report;
+    \item \texttt{scripts/run\_embedding\_ml.py}: extracts embeddings, clusters neighborhoods and exports Markdown/CSV outputs;
+    \item \texttt{scripts/build\_embedding\_dashboard.py}: creates the interactive HTML dashboard.
+\end{itemize}
+
+The required Python dependencies are \texttt{duckdb}, \texttt{rdflib}, \texttt{scikit-learn}, \texttt{pandas} and \texttt{tabulate}. The project can be reproduced by installing \texttt{requirements.txt} and running the four scripts in order from the repository root.
+
+The expected execution order is:
+\begin{enumerate}
+    \item build the semantic exploitation zone with \texttt{python scripts/build\_kg.py};
+    \item run the graph query analysis with \texttt{python scripts/run\_sparql\_analysis.py};
+    \item generate embeddings and clusters with \texttt{python scripts/run\_embedding\_ml.py};
+    \item create the visual dashboard with \texttt{python scripts/build\_embedding\_dashboard.py}.
+\end{enumerate}
+Each step writes its output to either \texttt{exploitation\_zone/} or \texttt{analysis\_zone/}, so the pipeline can be rerun from scratch without manual editing.
+
+\section{Validation and Limitations}
+
+Unit tests are included in the \texttt{tests/} directory. They cover URI normalization, literal cleanup, neighborhood alias merging, tourism pressure classification, embedding feature extraction, clustering output generation and dashboard generation. These tests are important because the most fragile parts of the pipeline are semantic identity creation and the transformation from RDF triples to numerical ML features.
+
+The tests also document expected behaviour. For example, they verify that \texttt{el Poble Sec} and \texttt{el Poble-sec} are merged into one RDF entity, that semantic embedding columns such as \texttt{pressureOrdinal}, \texttt{hutListingRatio} and \texttt{bedsPerHut} are created, and that the clustering pipeline exports KMeans labels, hierarchical labels and PCA coordinates. This makes the implementation easier to maintain if the KG schema is extended in future iterations.
+
+The current implementation has some limitations. First, the KG focuses on neighborhood-level summaries and does not yet model individual listings, hotels or tourism assets as first-class entities. Second, the tourism pressure thresholds are transparent but manually defined, so they should be reviewed with domain experts before policy usage. Third, the ML pipeline uses interpretable graph-derived features rather than a learned graph embedding model. This is appropriate for the current graph size, but Node2Vec, RDF2Vec or graph neural methods could be explored if the graph is extended with richer entity-level relationships.
+
+Overall, the project satisfies the assignment by creating a semantic exploitation zone and two independent KG-based analysis pipelines. The KG makes the integrated tourism data queryable through a common vocabulary, the SPARQL pipeline extracts interpretable graph patterns, and the ML pipeline groups neighborhoods using semantic features derived from the graph.
