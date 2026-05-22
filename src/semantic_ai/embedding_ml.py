@@ -16,6 +16,7 @@ FEATURES = [
     "isHighPressure",
     "hutListingRatio",
     "bedsPerHut",
+    "incomeMissing",
     "listingDistrictShare",
     "incomeVsDistrictAvg",
     "tourismVsDistrictAvg",
@@ -40,8 +41,18 @@ def require_dependencies():
 
 
 def numeric_value(graph, subject, predicate) -> float:
+    if subject is None:
+        return float("nan")
     value = graph.value(subject, predicate)
-    return float(value) if value is not None else 0.0
+    return float(value) if value is not None else float("nan")
+
+
+def first_numeric_value(graph, subjects, predicate) -> float:
+    for subject in subjects:
+        value = numeric_value(graph, subject, predicate)
+        if value == value:
+            return value
+    return float("nan")
 
 
 def pressure_value(uri: object) -> str:
@@ -68,22 +79,22 @@ def extract_neighborhood_embeddings(kg_path: Path):
             "district": district_label,
             "pressureLevel": pressure,
         }
-        for feature in [
-            "listingCount",
-            "avgPrice",
-            "avgRating",
-            "tourismAssetScore",
-            "incomeEur",
-            "hutCount",
-            "licensedBeds",
-        ]:
+        airbnb_zone = graph.value(neighborhood, BDA.hasAirbnbZone)
+        for feature in ["listingCount", "avgPrice", "avgRating"]:
+            row[feature] = first_numeric_value(graph, [airbnb_zone, neighborhood], BDA[feature])
+        for feature in ["tourismAssetScore", "incomeEur", "hutCount", "licensedBeds"]:
             row[feature] = numeric_value(graph, neighborhood, BDA[feature])
         row["pressureOrdinal"] = pressure_ordinals.get(pressure, 0.0)
         row["isHighPressure"] = 1.0 if pressure == "high" else 0.0
-        row["hutListingRatio"] = row["hutCount"] / row["listingCount"] if row["listingCount"] else 0.0
-        row["bedsPerHut"] = row["licensedBeds"] / row["hutCount"] if row["hutCount"] else 0.0
-        row["lowIncomeHighTourism"] = (
-            1.0 if row["incomeEur"] and row["incomeEur"] < 22000 and pressure == "high" else 0.0
+        row["hutListingRatio"] = (
+            row["hutCount"] / row["listingCount"]
+            if pd.notna(row["hutCount"]) and pd.notna(row["listingCount"]) and row["listingCount"]
+            else 0.0
+        )
+        row["bedsPerHut"] = (
+            row["licensedBeds"] / row["hutCount"]
+            if pd.notna(row["licensedBeds"]) and pd.notna(row["hutCount"]) and row["hutCount"]
+            else 0.0
         )
         rows.append(row)
 
@@ -91,6 +102,15 @@ def extract_neighborhood_embeddings(kg_path: Path):
     if df.empty:
         return df
 
+    df["incomeMissing"] = df["incomeEur"].isna().astype(float)
+    district_income_median = df.groupby("district")["incomeEur"].transform("median")
+    global_income_median = df["incomeEur"].median()
+    if pd.isna(global_income_median):
+        global_income_median = 0.0
+    df["incomeEur"] = df["incomeEur"].fillna(district_income_median).fillna(global_income_median)
+    df["lowIncomeHighTourism"] = (
+        (df["incomeEur"] < 22000) & (df["pressureLevel"] == "high")
+    ).astype(float)
     district_listing_total = df.groupby("district")["listingCount"].transform("sum").replace(0, 1)
     district_income_avg = df.groupby("district")["incomeEur"].transform("mean").replace(0, 1)
     district_tourism_avg = df.groupby("district")["tourismAssetScore"].transform("mean").replace(0, 1)
@@ -137,7 +157,8 @@ def cluster_embeddings(kg_path: Path, out_path: Path, k: int = 4) -> Path:
     if df.empty:
         raise RuntimeError("No neighborhood embeddings found in KG.")
 
-    matrix = df[FEATURES].fillna(0.0)
+    feature_df = df[FEATURES]
+    matrix = feature_df.fillna(feature_df.median(numeric_only=True)).fillna(0.0)
     scaled = StandardScaler().fit_transform(matrix)
     k = max(1, min(k, len(df)))
     kmeans_labels = KMeans(n_clusters=k, random_state=42, n_init=10).fit_predict(scaled)

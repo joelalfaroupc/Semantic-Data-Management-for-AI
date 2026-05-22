@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from rdflib import Namespace, RDF, RDFS
+from rdflib import Namespace, RDF, RDFS, XSD
 
 from src.semantic_ai.embedding_ml import cluster_embeddings, extract_neighborhood_embeddings
 from src.semantic_ai.embedding_dashboard import build_dashboard_html
@@ -39,8 +39,46 @@ class KnowledgeGraphPipelineTest(unittest.TestCase):
         self.assertEqual(neighborhoods, [poble_sec])
         self.assertEqual(labels, ["el Poble Sec"])
         self.assertEqual(float(graph.value(poble_sec, BDA.tourismAssetScore)), 73.0)
-        self.assertEqual(float(graph.value(poble_sec, BDA.listingCount)), 697.0)
         self.assertEqual(float(graph.value(poble_sec, BDA.hutCount)), 571.0)
+
+        airbnb_zone = BDA["airbnb-zone/el-poble-sec"]
+        self.assertEqual(list(graph.subjects(RDF.type, BDA.AirbnbZone)), [airbnb_zone])
+        self.assertEqual(graph.value(poble_sec, BDA.hasAirbnbZone), airbnb_zone)
+        self.assertEqual(graph.value(airbnb_zone, BDA.describesNeighborhood), poble_sec)
+        self.assertEqual(float(graph.value(airbnb_zone, BDA.listingCount)), 697.0)
+        self.assertEqual(float(graph.value(airbnb_zone, BDA.avgPrice)), 205.69)
+
+    def test_create_graph_declares_rdfs_domains_and_ranges(self):
+        tables = {
+            "district_profile": [{"district_name": "Sants-Montjuic", "tourism_asset_score": 10}],
+            "neighborhood_profile": [
+                {"neighborhood_name": "el Poble Sec", "district_name": "Sants-Montjuic", "tourism_asset_score": 73},
+            ],
+            "neighborhood_income_profile": [
+                {"neighborhood_name": "el Poble Sec", "avg_income_eur": 18000},
+            ],
+            "neighborhood_hut_profile": [
+                {"neighborhood_name": "el Poble Sec", "hut_license_count": 571, "total_hut_beds": 2762},
+            ],
+            "airbnb_zone_features": [
+                {"neighborhood_name": "el Poble Sec", "listing_count": 697, "avg_price": 205.69, "avg_rating": 4.58},
+            ],
+        }
+
+        with patch("src.semantic_ai.kg_builder.read_table", side_effect=lambda _db, name: tables[name]):
+            graph = create_graph(Path("unused.duckdb"))
+
+        BDA = Namespace(BASE_IRI)
+        self.assertIn((BDA.inDistrict, RDFS.domain, BDA.Neighborhood), graph)
+        self.assertIn((BDA.inDistrict, RDFS.range, BDA.District), graph)
+        self.assertIn((BDA.hasAirbnbZone, RDFS.domain, BDA.Neighborhood), graph)
+        self.assertIn((BDA.hasAirbnbZone, RDFS.range, BDA.AirbnbZone), graph)
+        self.assertIn((BDA.describesNeighborhood, RDFS.domain, BDA.AirbnbZone), graph)
+        self.assertIn((BDA.describesNeighborhood, RDFS.range, BDA.Neighborhood), graph)
+        self.assertIn((BDA.listingCount, RDFS.domain, BDA.AirbnbZone), graph)
+        self.assertIn((BDA.listingCount, RDFS.range, XSD.integer), graph)
+        self.assertIn((BDA.incomeEur, RDFS.domain, BDA.Neighborhood), graph)
+        self.assertIn((BDA.incomeEur, RDFS.range, XSD.double), graph)
 
     def test_extract_neighborhood_embeddings_adds_semantic_features_without_duplicate_labels(self):
         kg_path = Path("tests/fixtures/embedding_test.ttl")
@@ -52,10 +90,14 @@ class KnowledgeGraphPipelineTest(unittest.TestCase):
         self.assertIn("hutListingRatio", df.columns)
         self.assertIn("bedsPerHut", df.columns)
         self.assertIn("listingDistrictShare", df.columns)
+        self.assertIn("incomeMissing", df.columns)
         poble_sec = df.set_index("label").loc["el Poble Sec"]
         self.assertEqual(poble_sec["pressureOrdinal"], 3.0)
         self.assertAlmostEqual(poble_sec["hutListingRatio"], 0.25)
         self.assertAlmostEqual(poble_sec["bedsPerHut"], 5.0)
+        hostafrancs = df.set_index("label").loc["Hostafrancs"]
+        self.assertEqual(hostafrancs["incomeMissing"], 1.0)
+        self.assertEqual(hostafrancs["incomeEur"], 18000.0)
 
     def test_cluster_embeddings_exports_kmeans_hierarchical_and_pca_outputs(self):
         kg_path = Path("tests/fixtures/embedding_test.ttl")

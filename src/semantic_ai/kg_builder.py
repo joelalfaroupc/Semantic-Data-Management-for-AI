@@ -66,23 +66,30 @@ def create_graph(db_path: Path):
     BDA = Namespace(BASE_IRI)
     graph.bind("bda", BDA)
     graph.bind("rdfs", RDFS)
+    graph.bind("xsd", XSD)
 
     for class_name in ["District", "Neighborhood", "AirbnbZone", "TourismPressureLevel"]:
         graph.add((BDA[class_name], RDF.type, RDFS.Class))
 
-    properties = [
-        "inDistrict",
-        "hasTourismPressure",
-        "listingCount",
-        "avgPrice",
-        "avgRating",
-        "tourismAssetScore",
-        "incomeEur",
-        "hutCount",
-        "licensedBeds",
-    ]
-    for prop in properties:
+    property_specs = {
+        "inDistrict": (BDA.Neighborhood, BDA.District),
+        "hasTourismPressure": (BDA.Neighborhood, BDA.TourismPressureLevel),
+        "hasAirbnbZone": (BDA.Neighborhood, BDA.AirbnbZone),
+        "describesNeighborhood": (BDA.AirbnbZone, BDA.Neighborhood),
+        "listingCount": (BDA.AirbnbZone, XSD.integer),
+        "avgPrice": (BDA.AirbnbZone, XSD.double),
+        "avgRating": (BDA.AirbnbZone, XSD.double),
+        "incomeEur": (BDA.Neighborhood, XSD.double),
+        "hutCount": (BDA.Neighborhood, XSD.integer),
+        "licensedBeds": (BDA.Neighborhood, XSD.integer),
+    }
+    for prop, (domain, value_range) in property_specs.items():
         graph.add((BDA[prop], RDF.type, RDF.Property))
+        graph.add((BDA[prop], RDFS.domain, domain))
+        graph.add((BDA[prop], RDFS.range, value_range))
+
+    graph.add((BDA.tourismAssetScore, RDF.type, RDF.Property))
+    graph.add((BDA.tourismAssetScore, RDFS.range, XSD.double))
 
     district_rows = read_table(db_path, "district_profile")
     neighborhood_rows = read_table(db_path, "neighborhood_profile")
@@ -121,13 +128,18 @@ def create_graph(db_path: Path):
         graph.add((neighborhood, BDA.hasTourismPressure, BDA[f"pressure/{pressure}"]))
         graph.add((BDA[f"pressure/{pressure}"], RDF.type, BDA.TourismPressureLevel))
         graph.add((BDA[f"pressure/{pressure}"], RDFS.label, Literal(pressure)))
+        airbnb_zone = BDA[f"airbnb-zone/{uri_safe(neighborhood_name)}"]
+        graph.add((airbnb_zone, RDF.type, BDA.AirbnbZone))
+        graph.add((airbnb_zone, RDFS.label, Literal(f"Airbnb zone for {neighborhood_name}")))
+        graph.add((airbnb_zone, BDA.describesNeighborhood, neighborhood))
+        graph.add((neighborhood, BDA.hasAirbnbZone, airbnb_zone))
         add_literal(graph, neighborhood, BDA.tourismAssetScore, asset_score, XSD.double)
         add_literal(graph, neighborhood, BDA.incomeEur, income.get("avg_income_eur"), XSD.double)
         add_literal(graph, neighborhood, BDA.hutCount, hut_count, XSD.integer)
         add_literal(graph, neighborhood, BDA.licensedBeds, hut.get("total_hut_beds"), XSD.integer)
-        add_literal(graph, neighborhood, BDA.listingCount, listing_count, XSD.integer)
-        add_literal(graph, neighborhood, BDA.avgPrice, zone.get("avg_price"), XSD.double)
-        add_literal(graph, neighborhood, BDA.avgRating, zone.get("avg_rating"), XSD.double)
+        add_literal(graph, airbnb_zone, BDA.listingCount, listing_count, XSD.integer)
+        add_literal(graph, airbnb_zone, BDA.avgPrice, zone.get("avg_price"), XSD.double)
+        add_literal(graph, airbnb_zone, BDA.avgRating, zone.get("avg_rating"), XSD.double)
 
     return graph
 

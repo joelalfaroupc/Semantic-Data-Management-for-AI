@@ -25,13 +25,25 @@ The KG uses RDF/Turtle with lightweight RDFS classes and properties:
 
 - `District`
 - `Neighborhood`
+- `AirbnbZone`
 - `TourismPressureLevel`
 - `inDistrict`
 - `hasTourismPressure`
+- `hasAirbnbZone`
+- `describesNeighborhood`
 - numeric attributes such as `listingCount`, `hutCount`, `incomeEur` and `avgPrice`
 
 This keeps the model explainable and easy to query with SPARQL while leaving room
 to extend it with listings, hotels and points of interest as individual nodes.
+Core properties also declare `rdfs:domain` and `rdfs:range`, so consumers can
+infer the intended subject and value types instead of relying only on naming
+conventions.
+
+Airbnb supply is represented as an `AirbnbZone` node linked from each
+`Neighborhood` with `hasAirbnbZone`. Listing count, average price and average
+rating belong to that zone node, while socioeconomic and HUT license metrics stay
+on the neighborhood. This keeps the administrative area separate from the
+short-term rental measurement unit.
 
 ### Entity Normalization
 
@@ -63,11 +75,15 @@ attributes with features derived from graph concepts and relations:
 - ratio features: HUT licenses per listing and licensed beds per HUT license;
 - district-relative features: listing share within the district, income relative
   to district average and tourism assets relative to district average;
+- missingness features: `incomeMissing` marks neighborhoods where income was
+  absent before controlled median imputation;
 - combined policy signal: low-income and high-tourism-pressure flag.
 
 This hybrid representation is easier to inspect and justify than node2vec for a
 small neighborhood-level graph, while still exploiting the KG structure. The ML
-pipeline applies two clustering strategies to the standardized embedding matrix:
+pipeline imputes missing income with the district median, then the global median
+as fallback, so absent numeric values are not silently treated as real zeros. It
+then applies two clustering strategies to the standardized embedding matrix:
 
 - `KMeans` as a centroid-based baseline.
 - `AgglomerativeClustering` with Ward linkage as a hierarchical alternative that

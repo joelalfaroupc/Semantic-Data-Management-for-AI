@@ -8,16 +8,29 @@
     rdfs:label "el Poble Sec" ;
     bda:inDistrict <https://example.org/bda/barcelona-tourism/district/sants-montjuic> ;
     bda:hasTourismPressure <https://example.org/bda/barcelona-tourism/pressure/high> ;
+    bda:hasAirbnbZone <https://example.org/bda/barcelona-tourism/airbnb-zone/el-poble-sec> ;
     bda:incomeEur 18000 ;
-    bda:listingCount 100 ;
     bda:hutCount 25 ;
     bda:licensedBeds 125 .
+
+<https://example.org/bda/barcelona-tourism/airbnb-zone/el-poble-sec> a bda:AirbnbZone ;
+    rdfs:label "Airbnb zone for el Poble Sec" ;
+    bda:describesNeighborhood <https://example.org/bda/barcelona-tourism/neighborhood/el-poble-sec> ;
+    bda:listingCount 100 ;
+    bda:avgPrice 200 ;
+    bda:avgRating 4.6 .
 
 <https://example.org/bda/barcelona-tourism/neighborhood/hostafrancs> a bda:Neighborhood ;
     rdfs:label "Hostafrancs" ;
     bda:inDistrict <https://example.org/bda/barcelona-tourism/district/sants-montjuic> ;
     bda:hasTourismPressure <https://example.org/bda/barcelona-tourism/pressure/medium> ;
-    bda:incomeEur 22000 ;
-    bda:listingCount 20 ;
+    bda:hasAirbnbZone <https://example.org/bda/barcelona-tourism/airbnb-zone/hostafrancs> ;
     bda:hutCount 5 ;
     bda:licensedBeds 15 .
+
+<https://example.org/bda/barcelona-tourism/airbnb-zone/hostafrancs> a bda:AirbnbZone ;
+    rdfs:label "Airbnb zone for Hostafrancs" ;
+    bda:describesNeighborhood <https://example.org/bda/barcelona-tourism/neighborhood/hostafrancs> ;
+    bda:listingCount 20 ;
+    bda:avgPrice 120 ;
+    bda:avgRating 4.2 .

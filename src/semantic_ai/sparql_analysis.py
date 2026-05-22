@@ -17,9 +17,10 @@ QUERIES = {
              rdfs:label ?neighborhood ;
              bda:inDistrict ?d ;
              bda:hasTourismPressure <https://example.org/bda/barcelona-tourism/pressure/high> ;
-             bda:listingCount ?listings ;
+             bda:hasAirbnbZone ?airbnbZone ;
              bda:hutCount ?huts ;
              bda:tourismAssetScore ?assetScore .
+          ?airbnbZone bda:listingCount ?listings .
           ?d rdfs:label ?district .
         }
         ORDER BY DESC(?listings)
@@ -46,7 +47,8 @@ QUERIES = {
              rdfs:label ?neighborhood ;
              bda:inDistrict ?d ;
              bda:tourismAssetScore ?assetScore ;
-             bda:listingCount ?listings ;
+             bda:hasAirbnbZone ?airbnbZone .
+          ?airbnbZone bda:listingCount ?listings ;
              bda:avgPrice ?avgPrice .
           ?d rdfs:label ?district .
         }
