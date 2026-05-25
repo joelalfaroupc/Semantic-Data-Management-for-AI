@@ -45,6 +45,12 @@ pip install -r requirements.txt
 Run from this repository root:
 
 ```bash
+python scripts/run_all.py
+```
+
+Or run each step separately:
+
+```bash
 python scripts/build_kg.py
 python scripts/run_sparql_analysis.py
 python scripts/run_embedding_ml.py
@@ -54,7 +60,7 @@ python scripts/build_embedding_dashboard.py
 If the previous project is stored elsewhere:
 
 ```bash
-python scripts/build_kg.py --p1-root "C:/path/to/BDA_DataPipeline"
+python scripts/run_all.py --p1-root "C:/path/to/BDA_DataPipeline"
 ```
 
 ## Analytical Goal

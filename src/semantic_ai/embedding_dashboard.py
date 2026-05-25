@@ -1,3 +1,4 @@
+from html import escape
 import json
 from pathlib import Path
 
@@ -25,7 +26,7 @@ def dashboard_records(df: pd.DataFrame) -> list[dict]:
     for column in TEXT_COLUMNS:
         if column not in data:
             data[column] = ""
-        data[column] = data[column].fillna("").astype(str)
+        data[column] = data[column].fillna("").astype(str).map(escape)
     for column in NUMERIC_COLUMNS:
         if column not in data:
             data[column] = 0

@@ -58,6 +58,24 @@ merged by taking the maximum non-null value. This conservative rule preserves
 available signal when one source row contains zeros or missing values and another
 source row contains the populated tourism metric.
 
+### Tourism Pressure Heuristic
+
+Tourism pressure is encoded as a lightweight semantic category (`low`, `medium`
+or `high`) so it can be queried directly from SPARQL and reused as an ordinal ML
+feature. The category is computed from the three most interpretable neighborhood
+signals available in the integrated data:
+
+```text
+pressure_score = listings + 1.5 * HUT licenses + 0.5 * tourism asset score
+```
+
+The cutoffs are intentionally simple: scores below 40 are `low`, scores from 40
+to 199 are `medium`, and scores of 200 or more are `high`. This makes the rule
+easy to explain in the report and keeps the classification stable for a small
+dataset. HUT licenses receive a higher weight because they represent regulated
+tourist accommodation capacity, while tourism assets receive a lower weight
+because they are contextual attractors rather than direct accommodation supply.
+
 ## Analysis Pipelines
 
 Two analysis paths are implemented:

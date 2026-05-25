@@ -1,4 +1,5 @@
 import unittest
+from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import patch
 
@@ -101,26 +102,59 @@ class KnowledgeGraphPipelineTest(unittest.TestCase):
 
     def test_cluster_embeddings_exports_kmeans_hierarchical_and_pca_outputs(self):
         kg_path = Path("tests/fixtures/embedding_test.ttl")
-        out_path = Path("tmp/tests/cluster-report.md")
 
-        cluster_embeddings(kg_path, out_path, k=2)
+        with TemporaryDirectory() as tmp_dir:
+            out_path = Path(tmp_dir) / "cluster-report.md"
 
-        report = out_path.read_text(encoding="utf-8")
-        csv_path = out_path.with_suffix(".csv")
-        self.assertTrue(csv_path.exists())
-        self.assertIn("## Method Comparison", report)
-        self.assertIn("KMeans", report)
-        self.assertIn("Agglomerative", report)
-        self.assertIn("## PCA Projection", report)
+            cluster_embeddings(kg_path, out_path, k=2)
 
-        import pandas as pd
+            report = out_path.read_text(encoding="utf-8")
+            csv_path = out_path.with_suffix(".csv")
+            self.assertTrue(csv_path.exists())
+            self.assertIn("## Method Comparison", report)
+            self.assertIn("KMeans", report)
+            self.assertIn("Agglomerative", report)
+            self.assertIn("## PCA Projection", report)
 
-        df = pd.read_csv(csv_path)
-        self.assertIn("kmeansCluster", df.columns)
-        self.assertIn("hierarchicalCluster", df.columns)
-        self.assertIn("pca1", df.columns)
-        self.assertIn("pca2", df.columns)
-        self.assertEqual(len(df), 2)
+            import pandas as pd
+
+            df = pd.read_csv(csv_path)
+            self.assertIn("kmeansCluster", df.columns)
+            self.assertIn("hierarchicalCluster", df.columns)
+            self.assertIn("pca1", df.columns)
+            self.assertIn("pca2", df.columns)
+            self.assertEqual(len(df), 2)
+
+    def test_cluster_embeddings_rejects_single_neighborhood_kg_with_clear_error(self):
+        with TemporaryDirectory() as tmp_dir:
+            kg_path = Path(tmp_dir) / "single.ttl"
+            kg_path.write_text(
+                """
+                @prefix bda: <https://example.org/bda/barcelona-tourism/> .
+                @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+                @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+                <https://example.org/bda/barcelona-tourism/district/test> a bda:District ;
+                  rdfs:label "Test District" .
+                <https://example.org/bda/barcelona-tourism/neighborhood/test> a bda:Neighborhood ;
+                  rdfs:label "Test <b>Neighborhood</b>" ;
+                  bda:inDistrict <https://example.org/bda/barcelona-tourism/district/test> ;
+                  bda:hasTourismPressure <https://example.org/bda/barcelona-tourism/pressure/low> ;
+                  bda:hasAirbnbZone <https://example.org/bda/barcelona-tourism/airbnb-zone/test> ;
+                  bda:tourismAssetScore "1"^^xsd:double ;
+                  bda:incomeEur "10000"^^xsd:double ;
+                  bda:hutCount "0"^^xsd:integer ;
+                  bda:licensedBeds "0"^^xsd:integer .
+                <https://example.org/bda/barcelona-tourism/airbnb-zone/test> a bda:AirbnbZone ;
+                  bda:listingCount "1"^^xsd:integer ;
+                  bda:avgPrice "100"^^xsd:double ;
+                  bda:avgRating "4.5"^^xsd:double .
+                """,
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "At least 2 neighborhoods"):
+                cluster_embeddings(kg_path, Path(tmp_dir) / "report.md", k=2)
 
     def test_build_dashboard_html_contains_interactive_visual_sections(self):
         import pandas as pd
@@ -169,6 +203,35 @@ class KnowledgeGraphPipelineTest(unittest.TestCase):
         self.assertIn("Agglomerative", html)
         self.assertIn("el Poble Sec", html)
         self.assertIn("PCA", html)
+
+    def test_build_dashboard_html_escapes_text_values_from_records(self):
+        import pandas as pd
+
+        df = pd.DataFrame(
+            [
+                {
+                    "label": "<img src=x onerror=alert(1)>",
+                    "district": "District <script>alert(1)</script>",
+                    "pressureLevel": "high",
+                    "listingCount": 1,
+                    "hutCount": 0,
+                    "incomeEur": 10000,
+                    "tourismAssetScore": 1,
+                    "hutListingRatio": 0,
+                    "bedsPerHut": 0,
+                    "kmeansCluster": 0,
+                    "hierarchicalCluster": 0,
+                    "pca1": 0,
+                    "pca2": 0,
+                }
+            ]
+        )
+
+        html = build_dashboard_html(df)
+
+        self.assertNotIn("<img src=x onerror=alert(1)>", html)
+        self.assertNotIn("<script>alert(1)</script>", html)
+        self.assertIn("&lt;img src=x onerror=alert(1)&gt;", html)
 
 
 if __name__ == "__main__":

@@ -156,11 +156,13 @@ def cluster_embeddings(kg_path: Path, out_path: Path, k: int = 4) -> Path:
     df = extract_neighborhood_embeddings(kg_path)
     if df.empty:
         raise RuntimeError("No neighborhood embeddings found in KG.")
+    if len(df) < 2:
+        raise RuntimeError("At least 2 neighborhoods are required to cluster KG embeddings.")
 
     feature_df = df[FEATURES]
     matrix = feature_df.fillna(feature_df.median(numeric_only=True)).fillna(0.0)
     scaled = StandardScaler().fit_transform(matrix)
-    k = max(1, min(k, len(df)))
+    k = max(2, min(k, len(df)))
     kmeans_labels = KMeans(n_clusters=k, random_state=42, n_init=10).fit_predict(scaled)
     hierarchical_labels = AgglomerativeClustering(n_clusters=k, linkage="ward").fit_predict(scaled)
     pca_components = PCA(n_components=2, random_state=42).fit_transform(scaled)
