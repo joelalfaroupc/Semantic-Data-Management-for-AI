@@ -1,6 +1,6 @@
 # Semantic Data Management for AI
 
-Project 2 extends the previous BDA data pipeline with a Knowledge Graph based
+This project extends the previous BDA data pipeline with a Knowledge Graph based
 exploitation zone and two KG-based analysis pipelines.
 
 The previous project remains the source of cleaned and integrated data:
